@@ -7,6 +7,8 @@ console.log('Mapbox GL JS Loaded:', mapboxgl);
 // Set your Mapbox access token here
 mapboxgl.accessToken = 'pk.eyJ1Ijoid2lsbGlhbWNob3U1MDAiLCJhIjoiY21hcmdjZjdzMGFubDJqb3MzZzA5OWJzNCJ9.d0SFVMsjtvE9_k9XObORWw';
 
+console.log(mapboxgl.accessToken);
+
 // Initialize the map
 const map = new mapboxgl.Map({
   container: 'map', // ID of the div where the map will render
