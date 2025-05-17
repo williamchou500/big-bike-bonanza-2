@@ -219,6 +219,6 @@ map.on('load', async () => {
     .attr('r', (d) => radiusScale(d.totalTraffic))
     .style('--departure-ratio', (d) =>
       stationFlow(d.departures / d.totalTraffic),
-    );;
+    );
 }
 });

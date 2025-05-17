@@ -37,9 +37,14 @@ body {
 
 #map circle,
 .legend > div {
-  --color-departures: #377eb8;
-  --color-arrivals: #4daf4a;
-  --color: color-mix(in oklab, var(--color-departures) calc(var(--departure-ratio) * 100%), var(--color-arrivals));
+  --color-departures: steelblue;
+    --color-arrivals: darkorange;
+    --color: color-mix(
+    in oklch,
+    var(--color-departures) calc(100% * var(--departure-ratio)),
+    var(--color-arrivals)
+    );
+    fill: var(--color);
 }
 
 .legend {
@@ -54,7 +59,6 @@ body {
 }
 
 .legend > div {
-  flex: 1;
   grid-row: 1;
   background: var(--color);
   color: white;
