@@ -60,6 +60,8 @@ map.on('load', async () => {
   'line-opacity': 0.6       
 }
 });
+  let stations;
+
   try {
     const jsonurl = 'https://dsc106.com/labs/lab07/data/bluebikes-stations.json';
 
@@ -68,9 +70,10 @@ map.on('load', async () => {
 
     console.log('Loaded JSON Data:', jsonData); // Log to verify structure
 
-    let stations = jsonData.data.stations;
+    stations = jsonData.data.stations;
     console.log('Stations Array:', stations);
-    
+
+
   } catch (error) {
     console.error('Error loading JSON:', error); // Handle errors
   }
