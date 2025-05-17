@@ -25,7 +25,7 @@ body {
     pointer-events: none;
 }
 
-circle {
+#map circle {
     pointer-events: auto;
 }
 
@@ -33,4 +33,32 @@ circle {
     display: flex;
     gap: 1em;
     align-items: baseline;
+}
+
+#map circle,
+.legend > div {
+  --color-departures: #377eb8;
+  --color-arrivals: #4daf4a;
+  --color: color-mix(in oklab, var(--color-departures) calc(var(--departure-ratio) * 100%), var(--color-arrivals));
+}
+
+.legend {
+  display: grid;
+  grid-template: subgrid;
+  margin-block: 1rem;
+  gap: 1px;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.legend > div {
+  flex: 1;
+  grid-row: 1;
+  background: var(--color);
+  color: white;
+  padding: 0.5em 1.5em;
+  text-align: center;
+  font-weight: bold;
 }

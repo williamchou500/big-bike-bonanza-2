@@ -106,6 +106,7 @@ map.on('load', async () => {
 }
 });
   let stations;
+  let stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
 
   let trips = await d3.csv(
   'https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv',
@@ -154,7 +155,10 @@ map.on('load', async () => {
       .text(
         `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
       );
-  });
+  })
+  .style('--departure-ratio', (d) =>
+    stationFlow(d.departures / d.totalTraffic),
+);
 
   // Function to update circle positions when the map moves/zooms
   function updatePositions() {
@@ -212,6 +216,9 @@ map.on('load', async () => {
   circles
     .data(filteredStations)
     .join('circle') // Ensure the data is bound correctly
-    .attr('r', (d) => radiusScale(d.totalTraffic));
+    .attr('r', (d) => radiusScale(d.totalTraffic))
+    .style('--departure-ratio', (d) =>
+      stationFlow(d.departures / d.totalTraffic),
+    );;
 }
 });
