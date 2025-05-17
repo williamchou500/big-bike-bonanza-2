@@ -28,19 +28,18 @@ function getCoords(station) {
   return { cx: x, cy: y }; // Return as object for use in SVG attributes
 }
 
-function computeStationTraffic(stations, trips) {
-  // Compute departures
+function computeStationTraffic(stations, timeFilter = -1) {
+  // Retrieve filtered trips efficiently
   const departures = d3.rollup(
-    trips,
+    filterByMinute(departuresByMinute, timeFilter), // Efficient retrieval
     (v) => v.length,
-    (d) => d.start_station_id,
+    (d) => d.start_station_id
   );
 
-  // Computed arrivals as you did in step 4.2
   const arrivals = d3.rollup(
-    trips,
+    filterByMinute(arrivalsByMinute, timeFilter), // Efficient retrieval
     (v) => v.length,
-    (d) => d.end_station_id,
+    (d) => d.end_station_id
   );
 
   // Update each station..
@@ -57,21 +56,27 @@ function minutesSinceMidnight(date) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-  function filterTripsbyTime(trips, timeFilter) {
-  return timeFilter === -1
-    ? trips // If no filter is applied (-1), return all trips
-    : trips.filter((trip) => {
-        // Convert trip start and end times to minutes since midnight
-        const startedMinutes = minutesSinceMidnight(trip.started_at);
-        const endedMinutes = minutesSinceMidnight(trip.ended_at);
+function filterByMinute(tripsByMinute, minute) {
+  if (minute === -1) {
+    return tripsByMinute.flat(); // No filtering, return all trips
+  }
 
-        // Include trips that started or ended within 60 minutes of the selected time
-        return (
-          Math.abs(startedMinutes - timeFilter) <= 60 ||
-          Math.abs(endedMinutes - timeFilter) <= 60
-        );
-      });
+  // Normalize both min and max minutes to the valid range [0, 1439]
+  let minMinute = (minute - 60 + 1440) % 1440;
+  let maxMinute = (minute + 60) % 1440;
+
+  // Handle time filtering across midnight
+  if (minMinute > maxMinute) {
+    let beforeMidnight = tripsByMinute.slice(minMinute);
+    let afterMidnight = tripsByMinute.slice(0, maxMinute);
+    return beforeMidnight.concat(afterMidnight).flat();
+  } else {
+    return tripsByMinute.slice(minMinute, maxMinute).flat();
+  }
 }
+
+let departuresByMinute = Array.from({ length: 1440 }, () => []);
+let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
 
 map.on('load', async () => {
   map.addSource('boston_route', {
@@ -113,6 +118,13 @@ map.on('load', async () => {
   (trip) => {
     trip.started_at = new Date(trip.started_at);
     trip.ended_at = new Date(trip.ended_at);
+    let startedMinutes = minutesSinceMidnight(trip.started_at);
+    //This function returns how many minutes have passed since `00:00` (midnight).
+    departuresByMinute[startedMinutes].push(trip);
+    //This adds the trip to the correct index in `departuresByMinute` so that later we can efficiently retrieve all trips that started at a specific time.
+
+    let endedMinutes = minutesSinceMidnight(trip.ended_at);
+    arrivalsByMinute[endedMinutes].push(trip);
     return trip;
   },
 );
@@ -125,7 +137,7 @@ map.on('load', async () => {
 
     console.log('Loaded JSON Data:', jsonData); // Log to verify structure
 
-    stations = computeStationTraffic(jsonData.data.stations, trips);
+    stations = computeStationTraffic(jsonData.data.stations);
     console.log('Stations Array:', stations);
 
 
@@ -204,11 +216,8 @@ map.on('load', async () => {
   updateTimeDisplay();
 
   function updateScatterPlot(timeFilter) {
-  // Get only the trips that match the selected time filter
-  const filteredTrips = filterTripsbyTime(trips, timeFilter);
-
-  // Recompute station traffic based on the filtered trips
-  const filteredStations = computeStationTraffic(stations, filteredTrips);
+  
+  const filteredStations = computeStationTraffic(stations, timeFilter);
 
   timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
 
